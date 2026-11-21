@@ -57,6 +57,29 @@
   .tag{align-self:flex-start;font-size:.72rem;font-weight:700;letter-spacing:.4px;text-transform:uppercase;padding:2px 8px;border-radius:999px}
   .tag.holo{background:var(--lime);color:var(--navy)}
   .tag.tex{background:#e6f7fd;color:var(--navy);border:1px solid var(--iceblue)}
+  .lastname{font:inherit;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:9px 12px;border:1px solid var(--line);border-radius:8px;width:100%;max-width:260px}
+  .lastname:focus,.of input:focus,.of textarea:focus{outline:3px solid var(--iceblue);outline-offset:1px}
+  .add-btn{margin-top:8px;align-self:flex-start;font:inherit;font-weight:800;background:var(--lime);color:var(--navy);border:2px solid var(--navy);border-radius:10px;padding:10px 16px;cursor:pointer;min-height:44px}
+  .add-msg{font-size:.9rem;min-height:1.2em;color:var(--navy)}
+  .add-msg.err{color:#b00020}
+  .fab{position:fixed;right:16px;bottom:16px;z-index:20;background:var(--navy);color:var(--lime);font-weight:800;border-radius:999px;padding:12px 18px;text-decoration:none;box-shadow:0 4px 14px rgba(0,0,0,.25)}
+  .fab[hidden]{display:none}
+  .order{background:var(--card);border:2px solid var(--navy);border-radius:14px;padding:18px;margin-top:12px}
+  .order-empty{color:var(--muted);margin:0}
+  .oi{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-start;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--line)}
+  .oi-name{font-weight:700}
+  .oi-det{color:var(--muted);font-size:.92rem}
+  .qty{display:flex;align-items:center;gap:6px;flex-shrink:0}
+  .qty button,.rm{font:inherit;min-width:36px;min-height:36px;border:1px solid var(--line);background:var(--ice);border-radius:8px;cursor:pointer}
+  .rm{color:#b00020;padding:0 10px}
+  .of{display:grid;gap:10px;margin-top:16px}
+  .of label{font-weight:600;font-size:.9rem}
+  .of input,.of textarea{font:inherit;padding:9px 12px;border:1px solid var(--line);border-radius:8px;width:100%}
+  .of textarea{min-height:90px;resize:vertical}
+  .send-btn{font:inherit;font-weight:800;background:var(--navy);color:var(--lime);border:0;border-radius:10px;padding:12px 18px;cursor:pointer;min-height:44px;justify-self:start}
+  .send-btn:disabled{opacity:.6;cursor:wait}
+  .send-msg{font-weight:600}
+  .hp{position:absolute;left:-9999px}
   footer{text-align:center;color:var(--muted);font-size:.9rem;padding:24px 20px 40px;border-top:1px solid var(--line)}
 </style>
 </head>
@@ -90,7 +113,22 @@
   <h2 style="margin-top:40px" id="finishes">Finish samples</h2>
   <p class="finish-intro">The front surface of a print can be holographic or textured. Here's how each finish looks on a sample puck.</p>
   <div class="finishes" id="finish-grid"></div>
+  <h2 style="margin-top:40px" id="order">Your order list</h2>
+  <p class="finish-intro">Add items above, then send your list to the shop. No payment is taken here; we'll reply to confirm details, price and pickup.</p>
+  <div class="order">
+    <div id="order-items"></div>
+    <form class="of" id="order-form" novalidate>
+      <div><label for="o-name">Your name *</label><input id="o-name" name="name" required autocomplete="name"></div>
+      <div><label for="o-email">Email *</label><input id="o-email" name="email" type="email" required autocomplete="email"></div>
+      <div><label for="o-phone">Phone (optional)</label><input id="o-phone" name="phone" type="tel" autocomplete="tel"></div>
+      <div><label for="o-note">Note (optional)</label><textarea id="o-note" name="note" placeholder="Anything we should know: deadlines, pickup, questions"></textarea></div>
+      <input type="checkbox" name="botcheck" class="hp" tabindex="-1" aria-hidden="true">
+      <button type="submit" class="send-btn" data-umami-event="Send order request">Send order request</button>
+      <div class="send-msg" id="send-msg" role="status"></div>
+    </form>
+  </div>
 </main>
+<a href="#order" class="fab" id="fab" hidden>Order list (<span id="fab-n">0</span>)</a>
 
 <footer>
   <div class="wrap">Ordering &amp; contact info coming soon.</div>
@@ -104,6 +142,7 @@
 const PRODUCTS = [
   {
     name: "Christmas Hockey Ornament – Raised Plate",
+    nameField: true,
     photos: [
       { src: "images/ornament-silver-white.jpg", alt: "Crossed sticks ornament with white tape and silver name plate reading SMITH" },
       { src: "images/ornament-green-red.jpg", alt: "Crossed sticks ornament with red tape and green name plate reading SMITH" },
@@ -123,6 +162,7 @@ const PRODUCTS = [
   },
   {
     name: "Christmas Hockey Ornament – Flat Holographic",
+    nameField: true,
     photos: [],
     placeholder: "ornament",
     price: "",
@@ -186,9 +226,14 @@ document.getElementById("products").innerHTML = PRODUCTS.map((p, pi) => {
        data-umami-event="Photo thumbnail" data-umami-event-product="${esc(p.name)}" data-umami-event-photo="${i + 1}">
        <img src="${esc(x.src)}" alt="" loading="lazy"></button>`).join("")}</div>` : "";
   const groups = (p.optionGroups || []).map(g => `
+      <div class="og" data-group="${esc(g.label)}">
       <div class="opt-label">${esc(g.label)}</div>
-      <div class="opts">${g.options.map(o => `<button type="button" class="opt"
-        data-umami-event="Option" data-umami-event-product="${esc(p.name)}" data-umami-event-group="${esc(g.label)}" data-umami-event-option="${esc(o.name)}">${o.swatch ? `<span class="dot" style="background:${esc(o.swatch)}"></span>` : ""}${esc(o.name)}${o.note ? ` <small>— ${esc(o.note)}</small>` : ""}</button>`).join("")}</div>`).join("");
+      <div class="opts">${g.options.map(o => `<button type="button" class="opt" data-value="${esc(o.name)}"
+        data-umami-event="Option" data-umami-event-product="${esc(p.name)}" data-umami-event-group="${esc(g.label)}" data-umami-event-option="${esc(o.name)}">${o.swatch ? `<span class="dot" style="background:${esc(o.swatch)}"></span>` : ""}${esc(o.name)}${o.note ? ` <small>— ${esc(o.note)}</small>` : ""}</button>`).join("")}</div>
+      </div>`).join("");
+  const nameField = p.nameField ? `
+      <label class="opt-label" for="ln-${pi}">Last name</label>
+      <input class="lastname" id="ln-${pi}" type="text" maxlength="20" autocomplete="off" autocapitalize="characters" placeholder="SMITH">` : "";
   return `
   <article class="card">
     <div class="photo" data-umami-event="Product photo" data-umami-event-product="${esc(p.name)}">${main}</div>
@@ -199,6 +244,9 @@ document.getElementById("products").innerHTML = PRODUCTS.map((p, pi) => {
       <p class="desc">${esc(p.description)}</p>
       ${p.facts?.length ? `<ul class="facts">${p.facts.map(f => `<li>${esc(f)}</li>`).join("")}</ul>` : ""}
       ${groups}
+      ${nameField}
+      <button type="button" class="add-btn" data-pi="${pi}">Add to order list</button>
+      <div class="add-msg" role="status"></div>
     </div>
   </article>`;
 }).join("");
@@ -220,7 +268,86 @@ document.getElementById("finish-grid").innerHTML = FINISHES.map(f => `
     <figcaption>${esc(f.name)}<span class="tag ${f.type === "holo" ? "holo" : "tex"}">${f.type === "holo" ? "Holographic" : "Texture"}</span></figcaption>
   </figure>`).join("");
 
+/* ===== ORDER LIST ===== */
+const WEB3FORMS_KEY = ""; /* paste the Web3Forms access key here (safe to be public) */
+let ORDER = [];
+try { ORDER = JSON.parse(localStorage.getItem("hfs-order") || "[]"); } catch (e) { ORDER = []; }
+function saveOrder(){ try { localStorage.setItem("hfs-order", JSON.stringify(ORDER)); } catch (e) {} }
+function itemLine(it){ return [...it.opts.map(o => `${o.group}: ${o.value}`), ...(it.lastname ? [`Last name: ${it.lastname}`] : [])].join(" · "); }
+function renderOrder(){
+  const box = document.getElementById("order-items");
+  box.innerHTML = ORDER.length ? ORDER.map((it, i) => `
+    <div class="oi">
+      <div><div class="oi-name">${esc(it.product)}</div><div class="oi-det">${esc(itemLine(it))}</div></div>
+      <div class="qty">
+        <button type="button" data-q="${i}" data-d="-1" aria-label="Decrease quantity">−</button>
+        <span aria-label="Quantity">${it.qty}</span>
+        <button type="button" data-q="${i}" data-d="1" aria-label="Increase quantity">+</button>
+        <button type="button" class="rm" data-rm="${i}">Remove</button>
+      </div>
+    </div>`).join("") : `<p class="order-empty">Your list is empty. Tap "Add to order list" on a product.</p>`;
+  const n = ORDER.reduce((a, b) => a + b.qty, 0);
+  document.getElementById("fab-n").textContent = n;
+  document.getElementById("fab").hidden = n === 0;
+}
+renderOrder();
+
+document.querySelectorAll(".lastname").forEach(inp => inp.addEventListener("input", () => {
+  const pos = inp.selectionStart; inp.value = inp.value.toUpperCase().replace(/[^A-Z' -]/g, ""); inp.setSelectionRange(pos, pos);
+}));
+
+function addToOrder(btn){
+  const p = PRODUCTS[+btn.dataset.pi], card = btn.closest(".card"), msg = card.querySelector(".add-msg");
+  const opts = []; let missing = null;
+  card.querySelectorAll(".og").forEach(g => {
+    const sel = g.querySelector(".opt.sel");
+    if (sel) opts.push({ group: g.dataset.group, value: sel.dataset.value }); else if (!missing) missing = g.dataset.group;
+  });
+  const ln = card.querySelector(".lastname"); const lastname = ln ? ln.value.trim().toUpperCase() : "";
+  if (missing) { msg.className = "add-msg err"; msg.textContent = `Please pick a ${missing.toLowerCase()}.`; return; }
+  if (ln && !lastname) { msg.className = "add-msg err"; msg.textContent = "Please enter the last name."; ln.focus(); return; }
+  const key = JSON.stringify([p.name, opts, lastname]);
+  const found = ORDER.find(it => JSON.stringify([it.product, it.opts, it.lastname]) === key);
+  if (found) found.qty++; else ORDER.push({ product: p.name, opts, lastname, qty: 1 });
+  saveOrder(); renderOrder();
+  msg.className = "add-msg"; msg.textContent = "Added to your order list ✓";
+  if (window.umami) umami.track("Add to order list", { product: p.name });
+}
+
+document.getElementById("order-form").addEventListener("submit", async e => {
+  e.preventDefault();
+  const f = e.target, msg = document.getElementById("send-msg"), btn = f.querySelector(".send-btn");
+  const name = f.name.value.trim(), email = f.email.value.trim();
+  if (!ORDER.length) { msg.textContent = "Your order list is empty."; return; }
+  if (!name || !/^\S+@\S+\.\S+$/.test(email)) { msg.textContent = "Please enter your name and a valid email."; return; }
+  if (!WEB3FORMS_KEY) { msg.textContent = "Order sending isn't switched on yet. Please check back soon."; return; }
+  const lines = ORDER.map((it, i) => `${i + 1}. ${it.product}  x${it.qty}\n    ${itemLine(it)}`).join("\n\n");
+  const data = {
+    access_key: WEB3FORMS_KEY,
+    subject: `New order request from ${name}`,
+    from_name: "Hockey Fun Shop website",
+    replyto: email,
+    "Customer name": name, "Email": email, "Phone": f.phone.value.trim() || "(none)",
+    "Order": lines,
+    "Items total": String(ORDER.reduce((a, b) => a + b.qty, 0)),
+    "Note": f.note.value.trim() || "(none)",
+    botcheck: f.botcheck.checked
+  };
+  btn.disabled = true; msg.textContent = "Sending…";
+  try {
+    const r = await fetch("https://api.web3forms.com/submit", { method: "POST", headers: { "Content-Type": "application/json", Accept: "application/json" }, body: JSON.stringify(data) });
+    const j = await r.json();
+    if (j.success) { ORDER = []; saveOrder(); renderOrder(); f.reset(); msg.textContent = "Thanks! Your order request was sent. We'll be in touch soon."; }
+    else msg.textContent = "Sorry, that didn't send. Please try again in a moment.";
+  } catch (err) { msg.textContent = "Sorry, that didn't send. Please check your connection and try again."; }
+  btn.disabled = false;
+});
+
 document.addEventListener("click", e => {
+  const add = e.target.closest(".add-btn"); if (add) { addToOrder(add); return; }
+  const q = e.target.closest("[data-q]");
+  if (q) { const it = ORDER[+q.dataset.q]; it.qty = Math.max(1, it.qty + +q.dataset.d); saveOrder(); renderOrder(); return; }
+  const rm = e.target.closest("[data-rm]"); if (rm) { ORDER.splice(+rm.dataset.rm, 1); saveOrder(); renderOrder(); return; }
   /* Highlight the tapped option (one per row) */
   const b = e.target.closest(".opt");
   if (b) { b.parentElement.querySelectorAll(".opt").forEach(x => x.classList.toggle("sel", x === b)); return; }
