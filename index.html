@@ -203,7 +203,7 @@ const PRODUCTS = [
         { name: "Solid", note: "one color" }, { name: "Striped", note: "black + your color choice" } ] },
       { label: "Colors", options: [
         { name: "Red", swatch: "#d7192d" }, { name: "Blue", swatch: "#1f5fa8" }, { name: "Green", swatch: "#1fbf6f" },
-        { name: "Orange", swatch: "#ff7a1a" }, { name: "Black", swatch: "#1b1b1f" } ] }
+        { name: "Orange", swatch: "#ff7a1a" }, { name: "Black", swatch: "#1b1b1f", hideWhen: { group: "Style", value: "Striped" } } ] }
     ]
   }
 ];
@@ -245,7 +245,7 @@ document.getElementById("products").innerHTML = PRODUCTS.map((p, pi) => {
   const groups = (p.optionGroups || []).map(g => `
       <div class="og" data-group="${esc(g.label)}">
       <div class="opt-label">${esc(g.label)}</div>
-      <div class="opts">${g.options.map(o => `<button type="button" class="opt" data-value="${esc(o.name)}"
+      <div class="opts">${g.options.map(o => `<button type="button" class="opt" data-value="${esc(o.name)}"${o.hideWhen ? ` data-hide-group="${esc(o.hideWhen.group)}" data-hide-value="${esc(o.hideWhen.value)}"` : ""}
         data-umami-event="Option" data-umami-event-product="${esc(p.name)}" data-umami-event-group="${esc(g.label)}" data-umami-event-option="${esc(o.name)}">${o.swatch ? `<span class="dot" style="background:${esc(o.swatch)}"></span>` : ""}${esc(o.name)}${o.note ? ` <small>— ${esc(o.note)}</small>` : ""}</button>`).join("")}</div>
       </div>`).join("");
   const nameField = p.nameField ? `
@@ -367,7 +367,17 @@ document.addEventListener("click", e => {
   const rm = e.target.closest("[data-rm]"); if (rm) { ORDER.splice(+rm.dataset.rm, 1); saveOrder(); renderOrder(); return; }
   /* Highlight the tapped option (one per row) */
   const b = e.target.closest(".opt");
-  if (b) { b.parentElement.querySelectorAll(".opt").forEach(x => x.classList.toggle("sel", x === b)); return; }
+  if (b) {
+    b.parentElement.querySelectorAll(".opt").forEach(x => x.classList.toggle("sel", x === b));
+    /* Hide options that don't apply to the current choice (e.g. no Black when Striped) */
+    const card = b.closest(".card");
+    card.querySelectorAll(".opt[data-hide-group]").forEach(o => {
+      const sel = card.querySelector(`.og[data-group="${o.dataset.hideGroup}"] .opt.sel`);
+      const hide = !!sel && sel.dataset.value === o.dataset.hideValue;
+      o.hidden = hide; if (hide) o.classList.remove("sel");
+    });
+    return;
+  }
   /* Swap the main photo when a thumbnail is tapped */
   const t = e.target.closest(".thumb");
   if (t) {
