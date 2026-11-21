@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Hockey Fun Shop — Local 3D-Printed Hockey Gear</title>
 <meta name="description" content="3D-printed hockey gear and gifts, made locally by Hockey Fun Shop.">
+<!-- Umami analytics (cookieless). Click tracking: any element with data-umami-event -->
+<script defer src="https://cloud.umami.is/script.js" data-website-id="7670d432-6574-4361-a8b8-7b7c71e02181"></script>
 <style>
   :root{
     --ice:#f4f8fb; --navy:#0f2742; --red:#c8102e; --line:#d9e3ec; --muted:#5b6b7c; --card:#fff;
@@ -29,7 +31,9 @@
   .facts{margin:0;padding-left:18px;color:var(--muted);font-size:.95rem}
   .opt-label{font-weight:600;font-size:.9rem;margin-top:4px}
   .opts{display:flex;flex-wrap:wrap;gap:8px}
-  .opt{border:1px solid var(--line);background:var(--ice);border-radius:999px;padding:6px 12px;font-size:.9rem}
+  .opt{border:1px solid var(--line);background:var(--ice);border-radius:999px;padding:6px 12px;font-size:.9rem;font-family:inherit;color:inherit;cursor:pointer}
+  .opt.sel{border-color:var(--navy);background:var(--navy);color:#fff}
+  .opt.sel small{color:#cfd9e3}
   .opt small{color:var(--muted)}
   footer{text-align:center;color:var(--muted);font-size:.9rem;padding:24px 20px 40px;border-top:1px solid var(--line)}
 </style>
@@ -87,7 +91,7 @@ function esc(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;","
 
 document.getElementById("products").innerHTML = PRODUCTS.map(p => `
   <article class="card">
-    <div class="photo">
+    <div class="photo" data-umami-event="Product photo" data-umami-event-product="${esc(p.name)}">
       ${p.photo ? `<img src="${esc(p.photo)}" alt="${esc(p.name)}">`
                 : `${BALL_SVG}<span class="ph">Photo coming soon</span>`}
     </div>
@@ -97,9 +101,15 @@ document.getElementById("products").innerHTML = PRODUCTS.map(p => `
       <p class="desc">${esc(p.description)}</p>
       ${p.facts?.length ? `<ul class="facts">${p.facts.map(f=>`<li>${esc(f)}</li>`).join("")}</ul>` : ""}
       ${p.options?.length ? `<div class="opt-label">${esc(p.optionsLabel||"Options")}</div>
-        <div class="opts">${p.options.map(o=>`<span class="opt">${esc(o.name)}${o.note?` <small>— ${esc(o.note)}</small>`:""}</span>`).join("")}</div>` : ""}
+        <div class="opts">${p.options.map(o=>`<button type="button" class="opt" data-umami-event="Option" data-umami-event-product="${esc(p.name)}" data-umami-event-option="${esc(o.name)}">${esc(o.name)}${o.note?` <small>— ${esc(o.note)}</small>`:""}</button>`).join("")}</div>` : ""}
     </div>
   </article>`).join("");
+
+/* Highlight the tapped option (one per product) */
+document.addEventListener("click", e => {
+  const b = e.target.closest(".opt"); if (!b) return;
+  b.parentElement.querySelectorAll(".opt").forEach(x => x.classList.toggle("sel", x === b));
+});
 </script>
 </body>
 </html>
