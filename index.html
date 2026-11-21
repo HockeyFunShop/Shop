@@ -47,6 +47,14 @@
   .thumb{padding:0;border:2px solid transparent;border-radius:8px;overflow:hidden;width:64px;height:64px;cursor:pointer;background:none}
   .thumb img{width:100%;height:100%;object-fit:cover;display:block}
   .thumb.sel{border-color:var(--navy)}
+  .finish-intro{margin:-6px 0 16px;color:var(--muted)}
+  .finishes{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px}
+  .finish{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:0}
+  .finish img{width:100%;aspect-ratio:1/1;object-fit:cover;display:block}
+  .finish figcaption{padding:8px 10px 10px;display:flex;flex-direction:column;gap:4px;font-weight:700;font-size:.95rem}
+  .tag{align-self:flex-start;font-size:.72rem;font-weight:700;letter-spacing:.4px;text-transform:uppercase;padding:2px 8px;border-radius:999px}
+  .tag.holo{background:var(--lime);color:var(--navy)}
+  .tag.tex{background:#e6f7fd;color:var(--navy);border:1px solid var(--iceblue)}
   footer{text-align:center;color:var(--muted);font-size:.9rem;padding:24px 20px 40px;border-top:1px solid var(--line)}
 </style>
 </head>
@@ -76,6 +84,10 @@
 
   <h2 style="margin-top:24px">Products</h2>
   <div class="grid" id="products"></div>
+
+  <h2 style="margin-top:40px" id="finishes">Finish samples</h2>
+  <p class="finish-intro">The front surface of a print can be holographic or textured. Here's how each finish looks on a sample puck.</p>
+  <div class="finishes" id="finish-grid"></div>
 </main>
 
 <footer>
@@ -188,6 +200,23 @@ document.getElementById("products").innerHTML = PRODUCTS.map((p, pi) => {
     </div>
   </article>`;
 }).join("");
+
+/* ===== FINISH SAMPLES — edit here ===== type: "holo" or "tex" */
+const FINISHES = [
+  { name: "Holo Dots", type: "holo", photo: "images/finish-holo-dots.jpg" },
+  { name: "Holo Glitter", type: "holo", photo: "images/finish-holo-glitter.jpg" },
+  { name: "Holo Prism", type: "holo", photo: "images/finish-holo-prism.jpg" },
+  { name: "Holo Lines", type: "holo", photo: "images/finish-holo-lines.jpg" },
+  { name: "Sparkle", type: "tex", photo: "images/finish-sparkle-texture.jpg" },
+  { name: "Hexagon", type: "tex", photo: "images/finish-hex-texture.jpg" },
+  { name: "Geometric", type: "tex", photo: "images/finish-crosshatch-texture.jpg" },
+  { name: "Smooth", type: "tex", photo: "images/finish-smooth.jpg" }
+];
+document.getElementById("finish-grid").innerHTML = FINISHES.map(f => `
+  <figure class="finish" data-umami-event="Finish sample" data-umami-event-finish="${esc(f.name)}">
+    <img src="${esc(f.photo)}" alt="${esc(f.name)} finish on a sample puck" loading="lazy">
+    <figcaption>${esc(f.name)}<span class="tag ${f.type === "holo" ? "holo" : "tex"}">${f.type === "holo" ? "Holographic" : "Texture"}</span></figcaption>
+  </figure>`).join("");
 
 document.addEventListener("click", e => {
   /* Highlight the tapped option (one per row) */
