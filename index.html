@@ -269,7 +269,7 @@ document.getElementById("finish-grid").innerHTML = FINISHES.map(f => `
   </figure>`).join("");
 
 /* ===== ORDER LIST ===== */
-const WEB3FORMS_KEY = ""; /* paste the Web3Forms access key here (safe to be public) */
+const WEB3FORMS_KEY = "a9ece2e7-6bf5-42c7-bd78-51a058c769e5"; /* paste the Web3Forms access key here (safe to be public) */
 let ORDER = [];
 try { ORDER = JSON.parse(localStorage.getItem("hfs-order") || "[]"); } catch (e) { ORDER = []; }
 function saveOrder(){ try { localStorage.setItem("hfs-order", JSON.stringify(ORDER)); } catch (e) {} }
