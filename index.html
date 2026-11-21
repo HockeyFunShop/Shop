@@ -343,6 +343,13 @@ function addToOrder(btn){
   if (window.umami) umami.track("Add to order list", { product: p.name });
 }
 
+function submittedLine(){
+  const d = new Date(), tz = "America/Chicago";
+  const day = d.toLocaleDateString("en-US", { timeZone: tz, weekday: "long" });
+  const date = d.toLocaleDateString("en-US", { timeZone: tz, month: "2-digit", day: "2-digit", year: "2-digit" });
+  const time = d.toLocaleTimeString("en-US", { timeZone: tz, hour: "numeric", minute: "2-digit" });
+  return `New Hockey Fun Shop order form submitted on ${day}, ${date}, ${time} Central Time`;
+}
 document.getElementById("order-form").addEventListener("submit", async e => {
   e.preventDefault();
   const f = e.target, msg = document.getElementById("send-msg"), btn = f.querySelector(".send-btn");
@@ -363,6 +370,7 @@ document.getElementById("order-form").addEventListener("submit", async e => {
     subject: `New order request from ${name}`,
     from_name: "Hockey Fun Shop website",
     replyto: email,
+    "Submitted": submittedLine(),
     "Customer name": name, "Email": email, "Phone": f.phone.value.trim() || "(none)",
     "Note": f.note.value.trim() || "(none)",
     ...itemFields,
