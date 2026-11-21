@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hockey Fun Shop — Local 3D-Printed Hockey Gear</title>
+<meta name="description" content="3D-printed hockey gear and gifts, made locally by Hockey Fun Shop.">
+<style>
+  :root{
+    --ice:#f4f8fb; --navy:#0f2742; --red:#c8102e; --line:#d9e3ec; --muted:#5b6b7c; --card:#fff;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--ice);color:var(--navy);line-height:1.5}
+  header{background:var(--navy);color:#fff;padding:28px 20px 24px;border-bottom:5px solid var(--red)}
+  .wrap{max-width:1000px;margin:0 auto}
+  header h1{margin:0;font-size:clamp(1.8rem,5vw,2.6rem);letter-spacing:.5px}
+  header p{margin:6px 0 0;opacity:.85}
+  .notice{background:#fff7e0;border:1px solid #f0d58a;color:#6b5200;padding:10px 14px;border-radius:8px;margin:20px 0 0;font-size:.95rem}
+  main{padding:24px 20px 48px}
+  h2{font-size:1.3rem;margin:8px 0 16px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:20px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;display:flex;flex-direction:column}
+  .photo{aspect-ratio:1/1;background:#eaf1f7;display:flex;align-items:center;justify-content:center;position:relative}
+  .photo img{width:100%;height:100%;object-fit:cover}
+  .photo .ph{font-size:.85rem;color:var(--muted);position:absolute;bottom:10px;left:0;right:0;text-align:center}
+  .body{padding:16px 18px 20px;display:flex;flex-direction:column;gap:10px;flex:1}
+  .body h3{margin:0;font-size:1.2rem}
+  .desc{margin:0;color:#2c3e50}
+  .facts{margin:0;padding-left:18px;color:var(--muted);font-size:.95rem}
+  .opt-label{font-weight:600;font-size:.9rem;margin-top:4px}
+  .opts{display:flex;flex-wrap:wrap;gap:8px}
+  .opt{border:1px solid var(--line);background:var(--ice);border-radius:999px;padding:6px 12px;font-size:.9rem}
+  .opt small{color:var(--muted)}
+  footer{text-align:center;color:var(--muted);font-size:.9rem;padding:24px 20px 40px;border-top:1px solid var(--line)}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <h1>Hockey Fun Shop</h1>
+    <p>3D-printed hockey gear &amp; gifts, made locally.</p>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="notice">Preview page — more products, photos, and ordering info coming soon.</div>
+
+  <h2 style="margin-top:24px">Products</h2>
+  <div class="grid" id="products"></div>
+</main>
+
+<footer>
+  <div class="wrap">Ordering &amp; contact info coming soon.</div>
+</footer>
+
+<script>
+/* ===== PRODUCT LIST — edit here =====
+   photo: path to an image in the images/ folder (leave "" to show the placeholder drawing)
+   price: leave "" to hide the price                                                        */
+const PRODUCTS = [
+  {
+    name: "Airless Hockey-Stick Ball",
+    photo: "",
+    price: "",
+    description: "A one-piece, airless ball printed in flexible TPU, with 42 hockey-stick shaped cutouts.",
+    facts: ["About 65 mm (2.6 in) across", "Flexible TPU", "One solid piece — nothing to inflate"],
+    optionsLabel: "Styles",
+    options: [
+      { name: "Solid", note: "one color" },
+      { name: "Striped", note: "black + one color, 5 bands" }
+    ]
+  }
+];
+
+/* Placeholder drawing used until a real photo is added */
+const BALL_SVG = `
+<svg viewBox="0 0 200 200" width="62%" aria-hidden="true">
+  <defs><radialGradient id="g" cx="38%" cy="32%" r="75%">
+    <stop offset="0" stop-color="#ff5a6e"/><stop offset="1" stop-color="#a00d24"/></radialGradient></defs>
+  <circle cx="100" cy="100" r="88" fill="url(#g)"/>
+  ${[[70,62,-30],[118,58,25],[150,98,70],[52,104,-80],[96,104,10],[128,142,40],[74,146,-20]]
+    .map(([x,y,r])=>`<g transform="translate(${x} ${y}) rotate(${r})">
+      <path d="M-3 -20 L3 -20 L3 8 L14 8 Q18 8 18 12 L18 14 L-3 14 Z" fill="#5c0614" opacity=".85"/></g>`).join("")}
+</svg>`;
+
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
+
+document.getElementById("products").innerHTML = PRODUCTS.map(p => `
+  <article class="card">
+    <div class="photo">
+      ${p.photo ? `<img src="${esc(p.photo)}" alt="${esc(p.name)}">`
+                : `${BALL_SVG}<span class="ph">Photo coming soon</span>`}
+    </div>
+    <div class="body">
+      <h3>${esc(p.name)}</h3>
+      ${p.price ? `<div style="font-weight:700;color:var(--red)">${esc(p.price)}</div>` : ""}
+      <p class="desc">${esc(p.description)}</p>
+      ${p.facts?.length ? `<ul class="facts">${p.facts.map(f=>`<li>${esc(f)}</li>`).join("")}</ul>` : ""}
+      ${p.options?.length ? `<div class="opt-label">${esc(p.optionsLabel||"Options")}</div>
+        <div class="opts">${p.options.map(o=>`<span class="opt">${esc(o.name)}${o.note?` <small>— ${esc(o.note)}</small>`:""}</span>`).join("")}</div>` : ""}
+    </div>
+  </article>`).join("");
+</script>
+</body>
+</html>
