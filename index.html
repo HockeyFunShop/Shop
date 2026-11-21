@@ -363,9 +363,9 @@ document.getElementById("order-form").addEventListener("submit", async e => {
     from_name: "Hockey Fun Shop website",
     replyto: email,
     "Customer name": name, "Email": email, "Phone": f.phone.value.trim() || "(none)",
+    "Note": f.note.value.trim() || "(none)",
     ...itemFields,
     "Items total": String(ORDER.reduce((a, b) => a + b.qty, 0)),
-    "Note": f.note.value.trim() || "(none)",
     botcheck: f.botcheck.checked
   };
   btn.disabled = true; msg.textContent = "Sending…";
