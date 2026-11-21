@@ -42,6 +42,11 @@
   .opt.sel{border-color:var(--navy);background:var(--navy);color:var(--lime)}
   .opt.sel small{color:#e8ffad}
   .opt small{color:var(--muted)}
+  .dot{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:6px;vertical-align:-1px;border:1px solid rgba(0,0,0,.25)}
+  .thumbs{display:flex;gap:8px;padding:10px 12px 0}
+  .thumb{padding:0;border:2px solid transparent;border-radius:8px;overflow:hidden;width:64px;height:64px;cursor:pointer;background:none}
+  .thumb img{width:100%;height:100%;object-fit:cover;display:block}
+  .thumb.sel{border-color:var(--navy)}
   footer{text-align:center;color:var(--muted);font-size:.9rem;padding:24px 20px 40px;border-top:1px solid var(--line)}
 </style>
 </head>
@@ -79,19 +84,36 @@
 
 <script>
 /* ===== PRODUCT LIST — edit here =====
-   photo: path to an image in the images/ folder (leave "" to show the placeholder drawing)
-   price: leave "" to hide the price                                                        */
+   photos: images in the images/ folder (first one is the main photo; leave [] for the placeholder drawing)
+   price:  leave "" to hide the price
+   optionGroups: each group shows as a row of buttons; "swatch" adds a color dot */
 const PRODUCTS = [
   {
+    name: "Crossed Sticks Name Ornament",
+    photos: [
+      { src: "images/ornament-silver-white.jpg", alt: "Crossed sticks ornament with white tape and silver name plate reading SMITH" },
+      { src: "images/ornament-green-red.jpg", alt: "Crossed sticks ornament with red tape and green name plate reading SMITH" },
+      { src: "images/ornament-pucks-red-green.jpg", alt: "Crossed sticks ornament with green tape and red letter pucks spelling SMITH" }
+    ],
+    price: "",
+    description: "Personalized hockey Christmas ornament: two crossed sticks with taped handles and blades, and your last name raised on a sparkly black name plate.",
+    facts: ["Custom last name", "Tinsel hanger included"],
+    optionGroups: [
+      { label: "Tape color", options: [
+        { name: "Red", swatch: "#d7192d" }, { name: "Green", swatch: "#1fbf6f" }, { name: "White", swatch: "#f2f2f2" } ] },
+      { label: "Name plate color", options: [
+        { name: "Silver", swatch: "#c0c6cc" }, { name: "Green", swatch: "#1fbf6f" }, { name: "Red", swatch: "#d7192d" } ] }
+    ]
+  },
+  {
     name: "Airless Hockey-Stick Ball",
-    photo: "",
+    photos: [],
     price: "",
     description: "A one-piece, airless ball printed in flexible TPU, with 42 hockey-stick shaped cutouts.",
     facts: ["About 65 mm (2.6 in) across", "Flexible TPU", "One solid piece — nothing to inflate"],
-    optionsLabel: "Styles",
-    options: [
-      { name: "Solid", note: "one color" },
-      { name: "Striped", note: "black + one color, 5 bands" }
+    optionGroups: [
+      { label: "Styles", options: [
+        { name: "Solid", note: "one color" }, { name: "Striped", note: "black + one color, 5 bands" } ] }
     ]
   }
 ];
@@ -109,26 +131,44 @@ const BALL_SVG = `
 
 function esc(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
 
-document.getElementById("products").innerHTML = PRODUCTS.map(p => `
+document.getElementById("products").innerHTML = PRODUCTS.map((p, pi) => {
+  const ph = p.photos || [];
+  const main = ph.length
+    ? `<img class="main-img" src="${esc(ph[0].src)}" alt="${esc(ph[0].alt)}" loading="${pi ? "lazy" : "eager"}">`
+    : `${BALL_SVG}<span class="ph">Photo coming soon</span>`;
+  const thumbs = ph.length > 1 ? `<div class="thumbs">${ph.map((x, i) =>
+    `<button type="button" class="thumb${i ? "" : " sel"}" data-src="${esc(x.src)}" data-alt="${esc(x.alt)}" aria-label="Show photo ${i + 1}"
+       data-umami-event="Photo thumbnail" data-umami-event-product="${esc(p.name)}" data-umami-event-photo="${i + 1}">
+       <img src="${esc(x.src)}" alt="" loading="lazy"></button>`).join("")}</div>` : "";
+  const groups = (p.optionGroups || []).map(g => `
+      <div class="opt-label">${esc(g.label)}</div>
+      <div class="opts">${g.options.map(o => `<button type="button" class="opt"
+        data-umami-event="Option" data-umami-event-product="${esc(p.name)}" data-umami-event-group="${esc(g.label)}" data-umami-event-option="${esc(o.name)}">${o.swatch ? `<span class="dot" style="background:${esc(o.swatch)}"></span>` : ""}${esc(o.name)}${o.note ? ` <small>— ${esc(o.note)}</small>` : ""}</button>`).join("")}</div>`).join("");
+  return `
   <article class="card">
-    <div class="photo" data-umami-event="Product photo" data-umami-event-product="${esc(p.name)}">
-      ${p.photo ? `<img src="${esc(p.photo)}" alt="${esc(p.name)}">`
-                : `${BALL_SVG}<span class="ph">Photo coming soon</span>`}
-    </div>
+    <div class="photo" data-umami-event="Product photo" data-umami-event-product="${esc(p.name)}">${main}</div>
+    ${thumbs}
     <div class="body">
       <h3>${esc(p.name)}</h3>
       ${p.price ? `<div style="font-weight:700;color:var(--navy)">${esc(p.price)}</div>` : ""}
       <p class="desc">${esc(p.description)}</p>
-      ${p.facts?.length ? `<ul class="facts">${p.facts.map(f=>`<li>${esc(f)}</li>`).join("")}</ul>` : ""}
-      ${p.options?.length ? `<div class="opt-label">${esc(p.optionsLabel||"Options")}</div>
-        <div class="opts">${p.options.map(o=>`<button type="button" class="opt" data-umami-event="Option" data-umami-event-product="${esc(p.name)}" data-umami-event-option="${esc(o.name)}">${esc(o.name)}${o.note?` <small>— ${esc(o.note)}</small>`:""}</button>`).join("")}</div>` : ""}
+      ${p.facts?.length ? `<ul class="facts">${p.facts.map(f => `<li>${esc(f)}</li>`).join("")}</ul>` : ""}
+      ${groups}
     </div>
-  </article>`).join("");
+  </article>`;
+}).join("");
 
-/* Highlight the tapped option (one per product) */
 document.addEventListener("click", e => {
-  const b = e.target.closest(".opt"); if (!b) return;
-  b.parentElement.querySelectorAll(".opt").forEach(x => x.classList.toggle("sel", x === b));
+  /* Highlight the tapped option (one per row) */
+  const b = e.target.closest(".opt");
+  if (b) { b.parentElement.querySelectorAll(".opt").forEach(x => x.classList.toggle("sel", x === b)); return; }
+  /* Swap the main photo when a thumbnail is tapped */
+  const t = e.target.closest(".thumb");
+  if (t) {
+    const card = t.closest(".card"), img = card.querySelector(".main-img");
+    img.src = t.dataset.src; img.alt = t.dataset.alt;
+    card.querySelectorAll(".thumb").forEach(x => x.classList.toggle("sel", x === t));
+  }
 });
 </script>
 </body>
