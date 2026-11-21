@@ -108,8 +108,21 @@ const PRODUCTS = [
     ]
   },
   {
+    name: "Flat Holographic Name Ornament",
+    photos: [],
+    placeholder: "ornament",
+    price: "",
+    description: "A one-piece crossed sticks ornament printed face down on a holographic plate, so the whole flat front shimmers. Your last name is on a name plate or spelled out in letter pucks.",
+    facts: ["Custom last name", "One solid piece", "Holographic finish across the whole front", "Tinsel hanger included"],
+    optionGroups: [
+      { label: "Style", options: [
+        { name: "Name plate", note: "name on one plate" }, { name: "Letter pucks", note: "each letter in its own puck" } ] }
+    ]
+  },
+  {
     name: "Airless Hockey-Stick Ball",
     photos: [],
+    placeholder: "ball",
     price: "",
     description: "A one-piece, airless ball printed in flexible TPU, with 42 hockey-stick shaped cutouts.",
     facts: ["About 65 mm (2.6 in) across", "Flexible TPU", "One solid piece — nothing to inflate"],
@@ -131,13 +144,25 @@ const BALL_SVG = `
       <path d="M-3 -20 L3 -20 L3 8 L14 8 Q18 8 18 12 L18 14 L-3 14 Z" fill="#5c0614" opacity=".85"/></g>`).join("")}
 </svg>`;
 
+/* Placeholder drawing for the ornament until real photos are added */
+const ORNAMENT_SVG = `
+<svg viewBox="0 0 200 160" width="70%" aria-hidden="true">
+  <g fill="#1d2733">
+    <path d="M40 10 L52 6 L140 120 Q146 128 156 128 L178 128 Q186 128 186 136 Q186 144 178 144 L150 144 Q134 144 126 132 Z"/>
+    <g transform="translate(200 0) scale(-1 1)"><path d="M40 10 L52 6 L140 120 Q146 128 156 128 L178 128 Q186 128 186 136 Q186 144 178 144 L150 144 Q134 144 126 132 Z"/></g>
+  </g>
+  <defs><linearGradient id="holo" x1="0" x2="1"><stop offset="0" stop-color="#7f5cff"/><stop offset=".35" stop-color="#36d6ff"/><stop offset=".65" stop-color="#c6ff00"/><stop offset="1" stop-color="#ff5ab4"/></linearGradient></defs>
+  <rect x="48" y="58" width="104" height="36" rx="8" fill="url(#holo)" stroke="#1d2733" stroke-width="4"/>
+  <text x="100" y="84" text-anchor="middle" font-family="Anton, Impact, sans-serif" font-size="22" fill="#1d2733">NAME</text>
+</svg>`;
+
 function esc(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
 
 document.getElementById("products").innerHTML = PRODUCTS.map((p, pi) => {
   const ph = p.photos || [];
   const main = ph.length
     ? `<img class="main-img" src="${esc(ph[0].src)}" alt="${esc(ph[0].alt)}" loading="${pi ? "lazy" : "eager"}">`
-    : `${BALL_SVG}<span class="ph">Photo coming soon</span>`;
+    : `${p.placeholder === "ornament" ? ORNAMENT_SVG : BALL_SVG}<span class="ph">Photo coming soon</span>`;
   const thumbs = ph.length > 1 ? `<div class="thumbs">${ph.map((x, i) =>
     `<button type="button" class="thumb${i ? "" : " sel"}" data-src="${esc(x.src)}" data-alt="${esc(x.alt)}" aria-label="Show photo ${i + 1}"
        data-umami-event="Photo thumbnail" data-umami-event-product="${esc(p.name)}" data-umami-event-photo="${i + 1}">
