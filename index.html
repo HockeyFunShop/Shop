@@ -353,7 +353,7 @@ document.getElementById("order-form").addEventListener("submit", async e => {
   const itemFields = {};
   ORDER.forEach((it, i) => {
     const n = `Item ${i + 1}`;
-    itemFields[n] = `${it.product}  (qty ${it.qty})`;
+    itemFields[`──────── ITEM ${i + 1} ────────`] = `${it.product.toUpperCase()}  (QTY ${it.qty})`;
     it.opts.forEach(o => { itemFields[`${n} - ${o.group}`] = o.value; });
     if (it.lastname) itemFields[`${n} - Last name`] = it.lastname;
   });
