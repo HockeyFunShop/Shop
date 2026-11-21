@@ -193,7 +193,14 @@ const PRODUCTS = [
   },
   {
     name: "Hockey Ball - Hockey Stick Pattern",
-    photos: [],
+    photos: [
+      { src: "images/ball-group.jpg", alt: "Five hockey balls in black, blue striped, green, orange and red striped next to a hockey stick blade" },
+      { src: "images/ball-solid-green.jpg", alt: "Solid green hockey ball with hockey stick shaped cutouts" },
+      { src: "images/ball-solid-orange.jpg", alt: "Solid orange hockey ball with hockey stick shaped cutouts" },
+      { src: "images/ball-striped-blue.jpg", alt: "Striped hockey ball in black and blue" },
+      { src: "images/ball-striped-red.jpg", alt: "Striped hockey ball in black and red" },
+      { src: "images/ball-solid-black.jpg", alt: "Solid black hockey ball with hockey stick shaped cutouts" }
+    ],
     placeholder: "ball",
     price: "",
     description: "Super durable TPU ball with hockey stick shaped cutouts.",
@@ -202,8 +209,8 @@ const PRODUCTS = [
       { label: "Style", options: [
         { name: "Solid", note: "one color" }, { name: "Striped", note: "black + your color choice" } ] },
       { label: "Colors", options: [
-        { name: "Red", swatch: "#d7192d" }, { name: "Blue", swatch: "#1f5fa8" }, { name: "Green", swatch: "#1fbf6f" },
-        { name: "Orange", swatch: "#ff7a1a" }, { name: "Black", swatch: "#1b1b1f", hideWhen: { group: "Style", value: "Striped" } } ] }
+        { name: "Red", swatch: "#e3192f" }, { name: "Blue", swatch: "#1f86d6" }, { name: "Green", swatch: "#49dd36" },
+        { name: "Orange", swatch: "#ff5a1f" }, { name: "Black", swatch: "#111111", hideWhen: { group: "Style", value: "Striped" } } ] }
     ]
   }
 ];
