@@ -71,6 +71,7 @@
   .tag{align-self:flex-start;font-size:.72rem;font-weight:700;letter-spacing:.4px;text-transform:uppercase;padding:2px 8px;border-radius:999px}
   .tag.holo{background:var(--lime);color:var(--navy)}
   .tag.tex{background:#e6f7fd;color:var(--navy);border:1px solid var(--iceblue)}
+  .other-in{font:inherit;padding:9px 12px;border:1px solid var(--line);border-radius:8px;width:100%;max-width:260px}
   .lastname{font:inherit;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:9px 12px;border:1px solid var(--line);border-radius:8px;width:100%;max-width:260px}
   .lastname:focus,.of input:focus,.of textarea:focus{outline:3px solid var(--iceblue);outline-offset:1px}
   .add-btn{margin-top:8px;align-self:flex-start;font:inherit;font-weight:800;background:var(--lime);color:var(--navy);border:2px solid var(--navy);border-radius:10px;padding:10px 16px;cursor:pointer;min-height:44px}
@@ -214,7 +215,8 @@ const PRODUCTS = [
         { name: "Solid", note: "one color" }, { name: "Striped", note: "black + your color choice" } ] },
       { label: "Colors", options: [
         { name: "Red", swatch: "#e3192f" }, { name: "Blue", swatch: "#1f86d6" }, { name: "Green", swatch: "#49dd36" },
-        { name: "Orange", swatch: "#ff5a1f" }, { name: "Black", swatch: "#111111", hideWhen: { group: "Style", value: "Striped" } } ] }
+        { name: "Orange", swatch: "#ff5a1f" }, { name: "Black", swatch: "#111111", hideWhen: { group: "Style", value: "Striped" } },
+        { name: "Other", ask: "Which color? We'll confirm if we can do it." } ] }
     ]
   }
 ];
@@ -256,8 +258,12 @@ document.getElementById("products").innerHTML = PRODUCTS.map((p, pi) => {
   const groups = (p.optionGroups || []).map(g => `
       <div class="og" data-group="${esc(g.label)}">
       <div class="opt-label">${esc(g.label)}</div>
-      <div class="opts">${g.options.map(o => `<button type="button" class="opt" data-value="${esc(o.name)}"${o.hideWhen ? ` data-hide-group="${esc(o.hideWhen.group)}" data-hide-value="${esc(o.hideWhen.value)}"` : ""}
+      <div class="opts">${g.options.map(o => `<button type="button" class="opt" data-value="${esc(o.name)}"${o.ask ? ` data-ask="1"` : ""}${o.hideWhen ? ` data-hide-group="${esc(o.hideWhen.group)}" data-hide-value="${esc(o.hideWhen.value)}"` : ""}
         data-umami-event="Option" data-umami-event-product="${esc(p.name)}" data-umami-event-group="${esc(g.label)}" data-umami-event-option="${esc(o.name)}">${o.swatch ? `<span class="dot" style="background:${esc(o.swatch)}"></span>` : ""}${esc(o.name)}${o.note ? ` <small>— ${esc(o.note)}</small>` : ""}</button>`).join("")}</div>
+      ${g.options.some(o => o.ask) ? `<div class="other-wrap" hidden>
+        <label class="opt-label" for="oth-${pi}-${esc(g.label).replace(/\W+/g, "")}">${esc(g.options.find(o => o.ask).ask)}</label>
+        <input class="other-in" id="oth-${pi}-${esc(g.label).replace(/\W+/g, "")}" type="text" maxlength="40" placeholder="Purple">
+      </div>` : ""}
       </div>`).join("");
   const nameField = p.nameField ? `
       <label class="opt-label" for="ln-${pi}">Last name</label>
@@ -330,9 +336,13 @@ function addToOrder(btn){
   const opts = []; let missing = null;
   card.querySelectorAll(".og").forEach(g => {
     const sel = g.querySelector(".opt.sel");
-    if (sel) opts.push({ group: g.dataset.group, value: sel.dataset.value }); else if (!missing) missing = g.dataset.group;
+    if (sel && sel.dataset.ask) {
+      const t = g.querySelector(".other-in").value.trim();
+      if (t) opts.push({ group: g.dataset.group, value: `Other: ${t}` }); else if (!missing) missing = "OTHER:" + g.dataset.group;
+    } else if (sel) opts.push({ group: g.dataset.group, value: sel.dataset.value }); else if (!missing) missing = g.dataset.group;
   });
   const ln = card.querySelector(".lastname"); const lastname = ln ? ln.value.trim().toUpperCase() : "";
+  if (missing && missing.startsWith("OTHER:")) { msg.className = "add-msg err"; msg.textContent = "Please type the color you'd like."; return; }
   if (missing) { msg.className = "add-msg err"; msg.textContent = `Please pick a ${missing.toLowerCase()}.`; return; }
   if (ln && !lastname) { msg.className = "add-msg err"; msg.textContent = "Please enter the last name."; ln.focus(); return; }
   const key = JSON.stringify([p.name, opts, lastname]);
@@ -396,6 +406,8 @@ document.addEventListener("click", e => {
   const b = e.target.closest(".opt");
   if (b) {
     b.parentElement.querySelectorAll(".opt").forEach(x => x.classList.toggle("sel", x === b));
+    const ow = b.closest(".og").querySelector(".other-wrap");
+    if (ow) { ow.hidden = !b.dataset.ask; if (b.dataset.ask) ow.querySelector("input").focus(); }
     /* Hide options that don't apply to the current choice (e.g. no Black when Striped) */
     const card = b.closest(".card");
     card.querySelectorAll(".opt[data-hide-group]").forEach(o => {
