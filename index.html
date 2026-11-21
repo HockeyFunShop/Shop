@@ -168,6 +168,8 @@ const PRODUCTS = [
     optionGroups: [
       { label: "Style", options: [
         { name: "Name plate", note: "name on one plate" }, { name: "Letter pucks", note: "each letter in its own puck" } ] },
+      { label: "Holo finish", options: [
+        { name: "Holo Dots" }, { name: "Holo Glitter" }, { name: "Holo Prism" }, { name: "Holo Lines" } ] },
       { label: "Tape color", options: [
         { name: "Red", swatch: "#d7192d" }, { name: "Green", swatch: "#1fbf6f" }, { name: "White", swatch: "#f2f2f2" } ] },
       { label: "Plate / puck color", options: [
@@ -185,6 +187,8 @@ const PRODUCTS = [
     optionGroups: [
       { label: "Style", options: [
         { name: "Name plate", note: "name on one plate" }, { name: "Letter pucks", note: "each letter in its own puck" } ] },
+      { label: "Holo finish", options: [
+        { name: "Holo Dots" }, { name: "Holo Glitter" }, { name: "Holo Prism" }, { name: "Holo Lines" } ] },
       { label: "Tape color", options: [
         { name: "Red", swatch: "#d7192d" }, { name: "Green", swatch: "#1fbf6f" }, { name: "White", swatch: "#f2f2f2" } ] },
       { label: "Plate / puck color", options: [
@@ -297,12 +301,13 @@ const WEB3FORMS_KEY = "a9ece2e7-6bf5-42c7-bd78-51a058c769e5"; /* paste the Web3F
 let ORDER = [];
 try { ORDER = JSON.parse(localStorage.getItem("hfs-order") || "[]"); } catch (e) { ORDER = []; }
 function saveOrder(){ try { localStorage.setItem("hfs-order", JSON.stringify(ORDER)); } catch (e) {} }
+function itemAttrs(it){ return [...it.opts.map(o => `${o.group}: ${o.value}`), ...(it.lastname ? [`Last name: ${it.lastname}`] : [])]; }
 function itemLine(it){ return [...it.opts.map(o => `${o.group}: ${o.value}`), ...(it.lastname ? [`Last name: ${it.lastname}`] : [])].join(" · "); }
 function renderOrder(){
   const box = document.getElementById("order-items");
   box.innerHTML = ORDER.length ? ORDER.map((it, i) => `
     <div class="oi">
-      <div><div class="oi-name">${esc(it.product)}</div><div class="oi-det">${esc(itemLine(it))}</div></div>
+      <div><div class="oi-name">${esc(it.product)}</div><div class="oi-det">${itemAttrs(it).map(x => esc(x)).join("<br>")}</div></div>
       <div class="qty">
         <button type="button" data-q="${i}" data-d="-1" aria-label="Decrease quantity">−</button>
         <span aria-label="Quantity">${it.qty}</span>
@@ -345,14 +350,20 @@ document.getElementById("order-form").addEventListener("submit", async e => {
   if (!ORDER.length) { msg.textContent = "Your order list is empty."; return; }
   if (!name || !/^\S+@\S+\.\S+$/.test(email)) { msg.textContent = "Please enter your name and a valid email."; return; }
   if (!WEB3FORMS_KEY) { msg.textContent = "Order sending isn't switched on yet. Please check back soon."; return; }
-  const lines = ORDER.map((it, i) => `${i + 1}. ${it.product}  x${it.qty}\n    ${itemLine(it)}`).join("\n\n");
+  const itemFields = {};
+  ORDER.forEach((it, i) => {
+    const n = `Item ${i + 1}`;
+    itemFields[n] = `${it.product}  (qty ${it.qty})`;
+    it.opts.forEach(o => { itemFields[`${n} - ${o.group}`] = o.value; });
+    if (it.lastname) itemFields[`${n} - Last name`] = it.lastname;
+  });
   const data = {
     access_key: WEB3FORMS_KEY,
     subject: `New order request from ${name}`,
     from_name: "Hockey Fun Shop website",
     replyto: email,
     "Customer name": name, "Email": email, "Phone": f.phone.value.trim() || "(none)",
-    "Order": lines,
+    ...itemFields,
     "Items total": String(ORDER.reduce((a, b) => a + b.qty, 0)),
     "Note": f.note.value.trim() || "(none)",
     botcheck: f.botcheck.checked
